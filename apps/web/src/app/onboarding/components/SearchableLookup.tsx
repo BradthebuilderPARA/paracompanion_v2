@@ -52,14 +52,14 @@ export function SearchableLookup({ type, onSelect, selectedId, label, placeholde
       const table = type === 'trust' ? 'ambulance_trusts' : 'universities'
       const nameCol = type === 'trust' ? 'trust_name' : 'uni_name'
       
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from(table)
         .select(nameCol)
         .eq('id', selectedId)
         .single()
       
       if (data) {
-        setSelectedName((data as any)[nameCol])
+        setSelectedName((data as Record<string, string>)[nameCol])
       }
     }
     fetchSelected()
@@ -80,7 +80,7 @@ export function SearchableLookup({ type, onSelect, selectedId, label, placeholde
     const subtitleCol = type === 'trust' ? 'region' : 'country'
 
     try {
-      let supabaseQuery = supabase
+      const supabaseQuery = supabase
         .from(table)
         .select(`id, ${nameCol}, ${shortCol}, ${subtitleCol}`)
         .or(`${nameCol}.ilike.%${searchQuery}%,${shortCol}.ilike.%${searchQuery}%,${subtitleCol}.ilike.%${searchQuery}%`)
@@ -91,7 +91,7 @@ export function SearchableLookup({ type, onSelect, selectedId, label, placeholde
       if (error) throw error
 
       if (data) {
-        setResults(data.map((item: any) => ({
+        setResults(data.map((item: Record<string, unknown>) => ({
           id: item.id,
           name: item[nameCol],
           short_code: item[shortCol as string],
