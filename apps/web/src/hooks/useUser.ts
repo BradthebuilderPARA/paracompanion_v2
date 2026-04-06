@@ -13,6 +13,7 @@ export interface UserProfile {
   subscription_tier: 'free' | 'learner' | 'practitioner';
   avatar_seed: string | null;
   verified: boolean;
+  onboarding_complete: boolean;
 }
 
 export function useUser() {
@@ -47,6 +48,7 @@ export function useUser() {
           subscription_tier: (profile.subscription_tier as any) || 'free',
           avatar_seed: (profile as any).avatar_seed || authUser.id,
           verified: profile.verified || false,
+          onboarding_complete: (profile as any).onboarding_complete || false,
         });
       }
       setLoading(false);
