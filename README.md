@@ -1,114 +1,116 @@
 # ParaCompanion v2
 
-ParaCompanion v2 is a clinical documentation support tool for UK prehospital clinicians. It structures information captured during patient encounters — it does not diagnose, triage, or make treatment decisions. The system is classified as Class I Software as a Medical Device (SaMD) under MHRA regulation and is developed accordingly, with explicit regulatory, safety, and engineering constraints enforced throughout.
+ParaCompanion v2 is a clinical documentation support tool for UK prehospital clinicians. It is a **Class I Software as a Medical Device (SaMD) under MHRA** and is designed to **structure and standardise clinical documentation** (e.g., capture, organisation, and formatting of information). **It is not a diagnostic, triage, or treatment decision system**, and must not be used to generate or recommend clinical decisions.
 
 ---
 
-## Table of Contents
+## 1) Title & Overview
 
-1. [System Architecture](#system-architecture)
-2. [Tech Stack](#tech-stack)
-3. [Project Structure](#project-structure)
-4. [Setup & Development](#setup--development)
-5. [Clinical Safety & Regulatory Constraints](#clinical-safety--regulatory-constraints)
-6. [Data Protection & Airlock Engine](#data-protection--airlock-engine)
-7. [Database Rules](#database-rules)
-8. [Authentication & Security](#authentication--security)
-9. [Design System](#design-system)
-10. [Development Rules](#development-rules)
-11. [Test Credentials](#test-credentials)
-12. [Disclaimer](#disclaimer)
+**Project:** ParaCompanion v2  
+**Purpose:** Documentation support for UK prehospital care  
+**Regulatory position:** Class I SaMD (MHRA)  
+**Safety posture:** Information structuring only; no decision-making
+
+ParaCompanion v2 supports clinicians by providing consistent workflows for documenting care in the field, including offline-capable capture and deterministic formatting of structured data. The system is intentionally constrained to avoid diagnostic or prescriptive behaviour.
 
 ---
 
-## System Architecture
+## 2) System Architecture
 
-ParaCompanion v2 is a monorepo delivering three distinct surfaces:
+This repository is a **monorepo** comprising three user-facing surfaces and shared packages:
 
-| Surface | Framework | Purpose |
-|---|---|---|
-| **Web App** | Next.js 16 (App Router) | Primary clinical documentation interface |
-| **Mobile App** | React Native + Expo SDK 51 | Field use; offline-first |
-| **Marketing Site** | Next.js 16 (SSG) | Public-facing, statically generated |
+### Surfaces
+
+1. **Web App (Next.js App Router)**
+   - Internal clinical web interface for authenticated users.
+   - Uses shared UI, types, and clinical logic packages.
+   - Client must not process PII through any cloud AI or external service.
+
+2. **Mobile App (React Native + Expo)**
+   - Primary field workflow for prehospital clinicians.
+   - **Offline-first** by design: core capture and scoring must function without network access.
+   - Sync is opportunistic and must never block clinical workflows.
+
+3. **Marketing Site (Next.js SSG)**
+   - Public, static content only.
+   - No clinical functionality, no authenticated features, no access to operational systems.
 
 ### Backend
 
-- **Supabase** provides Postgres, Auth (OTP/magic link), and Edge Functions.
-- All server-side processing — including PII handling — occurs exclusively within **Supabase Edge Functions** (the Airlock Engine). No PII processing runs client-side.
-- Row Level Security (RLS) is enforced on all tables before any write operation.
+- **Supabase** provides:
+  - **Postgres** for structured storage
+  - **Auth** for OTP / magic link authentication
+  - **Edge Functions** for constrained server-side processing (“Airlock Engine”)
 
-### Mobile
+### Architectural constraints (high-level)
 
-- Designed **offline-first**. Clinical scoring tools must function without network connectivity.
-- Data is synced to the backend when a connection is re-established.
-- SecureStore is used for all sensitive local storage.
-
-### Clinical Logic
-
-- All shared clinical logic is isolated in `packages/clinical`.
-- No clinical logic is duplicated across surfaces.
-- Outputs are deterministic and non-inferential.
+- Clinical logic is separated and versioned in **`packages/clinical`**.
+- The mobile app is **offline-first**; any scoring tools must operate offline with deterministic outputs.
+- All sensitive processing and sanitisation is performed **server-side only** within **Supabase Edge Functions**.
 
 ---
 
-## Tech Stack
+## 3) Tech Stack (Strict)
 
-### Enforced Technologies
+### Enforced technologies
 
-| Concern | Technology |
-|---|---|
-| Package manager | `pnpm` (exclusively) |
-| Web framework | Next.js 16 App Router |
-| Mobile framework | React Native + Expo SDK 51 |
-| State management | Zustand |
-| Form handling | react-hook-form |
-| Validation | Zod |
-| Date handling | date-fns |
-| Backend | Supabase (Postgres, Auth, Edge Functions) |
-| Styling (web) | Tailwind CSS |
-| Styling (mobile) | NativeWind |
-| Icons | lucide-react |
-| Language | TypeScript (strict mode) |
+- Package manager: **pnpm only**
+- Web: **Next.js 16 (App Router)**
+- Mobile: **React Native + Expo (SDK 51)**
+- State management: **Zustand**
+- Forms: **react-hook-form**
+- Validation: **zod**
+- Dates: **date-fns** (required)
+- Backend: **Supabase (Postgres, Auth, Edge Functions)**
+- Styling:
+  - Web: **Tailwind CSS**
+  - Mobile: **NativeWind**
+- Icons: **lucide-react**
+- Language: **TypeScript (strict mode)**
 
-### Prohibited Technologies
+### Prohibited (non-negotiable)
 
-The following are **not permitted** anywhere in this codebase:
-
-- `npm` or `yarn` — use `pnpm` only
-- `axios` — use `fetch` directly
-- `Moment.js` — use `date-fns`
-- React class components — use function components only
-- `any` TypeScript type — enforce strict typing throughout
+- Package managers: **npm**, **yarn**
+- HTTP client: **Axios** (use `fetch`)
+- Date library: **Moment.js**
+- React **class components** (function components only)
 
 ---
 
-## Project Structure
+## 4) Project Structure
 
-```
+Representative layout (actual layout may evolve, but must preserve separation of concerns):
+
+```text
 /apps
-  /web              # Next.js 16 App Router — clinical documentation web interface
-  /mobile           # React Native + Expo SDK 51 — mobile field app
-  /marketing        # Next.js 16 SSG — public marketing site
+  /web           # Next.js App Router application (clinical web)
+  /mobile        # React Native + Expo application (offline-first)
+  /marketing     # Next.js static site (SSG)
+
 /packages
-  /clinical         # Shared clinical logic (scoring tools, structuring utilities)
-  /ui               # Shared component library
-  /types            # Shared TypeScript type definitions
+  /clinical      # Clinical logic: deterministic, testable, offline-capable
+  /ui            # Shared UI primitives + design system components
+  /types         # Shared TypeScript types + schemas
+
 /supabase
-  /functions        # Edge Functions — Airlock Engine, PII processing
-  /migrations       # Postgres schema migrations
+  /functions     # Edge Functions (Airlock Engine runs here)
+  /migrations    # Database migrations (schema as code)
 ```
+
+**Hard boundary:** `packages/clinical` must remain free of UI dependencies and must be deterministic and testable.
 
 ---
 
-## Setup & Development
+## 5) Setup & Development
 
 ### Prerequisites
 
-- Node.js (see `.nvmrc` or `engines` field in `package.json`)
-- `pnpm` installed globally: `npm install -g pnpm`
-- Supabase CLI (for local development): `brew install supabase/tap/supabase`
+- Node.js (LTS recommended)
+- **pnpm** installed globally
+- Supabase CLI (if using local Supabase)
+- iOS/Android toolchains (for mobile development)
 
-### Install Dependencies
+### Install dependencies
 
 ```bash
 pnpm install

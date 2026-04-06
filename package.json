@@ -1,0 +1,16 @@
+{
+  "name": "paracompanion-monorepo",
+  "version": "1.3.0",
+  "private": true,
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "db:types": "supabase gen types typescript --local > packages/types/database.ts"
+  },
+  "devDependencies": {
+    "turbo": "^2.0.0",
+    "typescript": "^5.0.0",
+    "supabase": "^1.180.0"
+  }
+}

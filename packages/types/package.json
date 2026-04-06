@@ -1,0 +1,9 @@
+{
+  "name": "@paracompanion/types",
+  "version": "1.0.0",
+  "main": "./database.ts",
+  "types": "./database.ts",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  }
+}

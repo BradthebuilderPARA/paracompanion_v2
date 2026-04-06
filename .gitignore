@@ -1,0 +1,35 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Next.js
+.next/
+out/
+
+# Turbo
+.turbo
+
+# Supabase
+supabase/.temp/
+supabase/functions/.debug/
+
+# OS/IDEs
+.DS_Store
+.vscode/
+.idea/
+
+# Environment Variables (Safety)
+.env
+.env.local
+.env.production
+.env.development
+*.env.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Vercel
+.vercel

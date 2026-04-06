@@ -1,0 +1,146 @@
+
+> web@0.1.0 lint
+> eslint
+
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/components/SearchableLookup.tsx
+  55:21  warning  'error' is assigned a value but never used                @typescript-eslint/no-unused-vars
+  62:34  error    Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+  83:11  error    'supabaseQuery' is never reassigned. Use 'const' instead  prefer-const
+  94:36  error    Unexpected any. Specify a different type                  @typescript-eslint/no-explicit-any
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/page.tsx
+  28:6  warning  React Hook useEffect has missing dependencies: 'setStep', 'step', and 'supabase.auth'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Complete.tsx
+   5:32  warning  'ExternalLink' is defined but never used                         @typescript-eslint/no-unused-vars
+  16:14  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx
+   33:6   warning  React Hook useEffect has a missing dependency: 'supabase.auth'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/exhaustive-deps
+  103:10  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx:103:10
+  101 |
+  102 |       <div className="space-y-4">
+> 103 |         <Checkbox 
+      |          ^^^^^^^^ This component is created during render
+  104 |           label="I'm a UK clinician or student and I agree to the terms."
+  105 |           checked={localAgreedTerms}
+  106 |           onChange={setLocalAgreedTerms}
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx:46:20
+  44 |   }
+  45 |
+> 46 |   const Checkbox = ({ 
+     |                    ^^^
+> 47 |     label, 
+     | ^^^^^^^^^^^
+> 48 |     checked, 
+     …
+     | ^^^^^^^^^^^
+> 84 |     </div>
+     | ^^^^^^^^^^^
+> 85 |   )
+     | ^^^^ The component is created during render here
+  86 |
+  87 |   return (
+  88 |     <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-700">                react-hooks/static-components
+  111:10  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx:111:10
+  109 |           linkText="Review Terms"
+  110 |         />
+> 111 |         <Checkbox 
+      |          ^^^^^^^^ This component is created during render
+  112 |           label="I've read the privacy policy and I'm happy to proceed."
+  113 |           checked={localAgreedPrivacy}
+  114 |           onChange={setLocalAgreedPrivacy}
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx:46:20
+  44 |   }
+  45 |
+> 46 |   const Checkbox = ({ 
+     |                    ^^^
+> 47 |     label, 
+     | ^^^^^^^^^^^
+> 48 |     checked, 
+     …
+     | ^^^^^^^^^^^
+> 84 |     </div>
+     | ^^^^^^^^^^^
+> 85 |   )
+     | ^^^^ The component is created during render here
+  86 |
+  87 |   return (
+  88 |     <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-700">  react-hooks/static-components
+  119:10  error    Error: Cannot create components during render
+
+Components created during render will reset their state each time they are created. Declare components outside of render.
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx:119:10
+  117 |           linkText="Review Privacy"
+  118 |         />
+> 119 |         <Checkbox 
+      |          ^^^^^^^^ This component is created during render
+  120 |           label="Send the occasional update about new features."
+  121 |           checked={localAgreedMarketing}
+  122 |           onChange={setLocalAgreedMarketing}
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/Consent.tsx:46:20
+  44 |   }
+  45 |
+> 46 |   const Checkbox = ({ 
+     |                    ^^^
+> 47 |     label, 
+     | ^^^^^^^^^^^
+> 48 |     checked, 
+     …
+     | ^^^^^^^^^^^
+> 84 |     </div>
+     | ^^^^^^^^^^^
+> 85 |   )
+     | ^^^^ The component is created during render here
+  86 |
+  87 |   return (
+  88 |     <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-700">    react-hooks/static-components
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/app/onboarding/steps/ProfileRole.tsx
+  28:9  warning  'router' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/components/dashboard/CrewConnectivity.tsx
+  3:10  warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+  4:8   warning  'Image' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/components/layout/BottomNavigation.tsx
+  6:10  warning  'tokens' is defined but never used  @typescript-eslint/no-unused-vars
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/components/layout/Header.tsx
+  38:5  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/components/layout/Header.tsx:38:5
+  36 |   // Close menus on route change
+  37 |   useEffect(() => {
+> 38 |     setIsMenuOpen(false);
+     |     ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  39 |     setIsProfileOpen(false);
+  40 |     setIsSearchOpen(false);
+  41 |   }, [pathname]);  react-hooks/set-state-in-effect
+
+/Users/brad/Desktop/v3_paracompanion_dev/apps/web/src/utils/supabase/server.ts
+  19:20  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+  28:20  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+✖ 18 problems (8 errors, 10 warnings)
+  1 error and 0 warnings potentially fixable with the `--fix` option.
+
