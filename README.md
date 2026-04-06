@@ -116,205 +116,168 @@ Representative layout (actual layout may evolve, but must preserve separation of
 pnpm install
 ```
 
-### Run applications (development)
+### Development Servers
 
-> Commands are representative; use the workspace scripts defined in `package.json` where available.
-
-**Web app**
 ```bash
+# Web app
 pnpm --filter web dev
-```
 
-**Mobile app**
-```bash
-pnpm --filter mobile dev
-```
+# Mobile app
+pnpm --filter mobile start
 
-**Marketing site**
-```bash
+# Marketing site
 pnpm --filter marketing dev
 ```
 
-### Supabase local development (if applicable)
-
-If local Supabase is used, follow the repository’s Supabase setup scripts. Typical flow:
+### Supabase Local Setup
 
 ```bash
 supabase start
-supabase db reset
+supabase db reset   # Applies all migrations and seeds
 ```
 
-**Important:**
-- Local development must never require production secrets.
-- Use `.env.local` files per app where needed.
-- Environment variables must be documented and validated at startup.
+### Environment Variables
 
-### Environment variable expectations
+Each app expects a `.env.local` file. **No secrets are committed to the repository.** Reference `.env.example` in each app directory for required variable names. Variables follow the pattern:
 
-- **No secrets committed to git.**
-- Use `.env.example` files to document required variables.
-- Validate required variables at runtime (fail fast).
-- Treat all logs as potentially sensitive; avoid logging identifiers, tokens, or payloads that could include PII.
+```
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+```
 
----
-
-## 6) Clinical Safety & Regulatory Constraints
-
-ParaCompanion v2 is a regulated clinical product. The following constraints are mandatory:
-
-- The system must **not** provide:
-  - diagnosis
-  - triage recommendations
-  - treatment decisions
-  - medication recommendations
-  - clinical risk stratification intended to replace clinician judgement
-- The system may provide:
-  - **information structuring**
-  - **deterministic scoring tools** that are offline-capable and explicitly defined (no probabilistic inference)
-  - templating and formatting to support documentation
-
-### Offline requirements
-
-- Any **scoring tools** used in the field must operate **offline**.
-- Network loss must not degrade core capture and documentation workflows.
-
-### Determinism requirements
-
-- Outputs must be **deterministic** for identical inputs.
-- Avoid non-deterministic behaviour (e.g., “AI suggestions”, probabilistic ranking, or cloud inference on user-entered PII).
+Sensitive keys (service role, edge function secrets) are provided through environment configuration in deployment pipelines and are never exposed client-side.
 
 ---
 
-## 7) Data Protection & Airlock Engine
+## Clinical Safety & Regulatory Constraints
 
-### Absolute rule: PII must NEVER reach the cloud (outside controlled processing)
+ParaCompanion v2 is classified as **Class I SaMD under MHRA regulation**. The following constraints are non-negotiable and reflect the safety case for the system:
 
-**PII must never be sent to external services** or processed in client-side “sanitisation” layers. The system assumes clients are not trusted for redaction or compliance enforcement.
+- The system **does not diagnose, triage, or recommend treatment**.
+- All functionality is limited to **information structuring and documentation support**.
+- Clinical scoring tools (e.g. GCS, NEWS2) produce deterministic outputs from user-supplied inputs — they do not infer, predict, or interpret.
+- Offline functionality for scoring tools is **mandatory**. Clinicians must be able to use the system without network connectivity.
+- All outputs are reproducible given the same inputs. No probabilistic or model-driven outputs are permitted.
+- Changes to clinical logic in `packages/clinical` require engineering review and traceability to a documented clinical requirement.
 
-### Airlock Engine
+---
 
-- The **Airlock Engine runs ONLY in Supabase Edge Functions**.
-- All sanitisation/redaction/validation requiring server-side guarantees must happen **only** in Edge Functions.
-- Clients must treat the Airlock as the only permitted processing boundary for sensitive transformations.
+## Data Protection & Airlock Engine
 
-### No client-side sanitisation
+Patient data is subject to UK GDPR and the Data Protection Act 2018. The following rules govern all PII handling:
 
-- Client-side code must not attempt to “remove identifiers” and then send data elsewhere.
-- Redaction must be **server-enforced**, testable, and auditable.
-
-### Examples of PII (non-exhaustive)
-
-The following are considered PII and must be handled accordingly:
+### PII Definition (Non-Exhaustive)
 
 - NHS number
 - Date of birth
-- Names (patient or relatives)
-- Home address / postcode
-- Telephone number / email address
-- Incident identifiers that can re-identify a patient when combined with other data
-- Free-text narrative that may contain identifiers
+- Full name
+- Address or postcode
+- Any field that alone or in combination could identify a patient
+
+### Airlock Rules
+
+- PII **must never reach cloud infrastructure in identifiable form**.
+- All PII processing (structuring, redaction, anonymisation) occurs exclusively within **Supabase Edge Functions** — the Airlock Engine.
+- **No client-side PII sanitisation is permitted.** Client applications must not attempt to strip or transform PII before transmission.
+- The Airlock is the sole boundary at which PII is handled. Any proposed change to this boundary requires explicit sign-off.
 
 ---
 
-## 8) Database Rules
+## Database Rules
 
-All database changes must be made via migrations and follow these rules:
+All schema changes must conform to the following:
 
-### Keys and identifiers
-
-- **UUID primary keys** required for operational tables.
-- Avoid sequential identifiers in exposed surfaces.
-
-### Soft deletes only
-
-- Use soft delete fields; do not hard-delete operational records by default.
-- Required columns on operational tables:
-  - `created_at`
-  - `updated_at`
-  - `deleted_at` (nullable)
-
-### Row Level Security (RLS)
-
-- **RLS must be enabled** on all tables containing user or operational data.
-- **No writes** permitted unless an explicit RLS policy exists and is reviewed.
-
-### Auditability
-
-- Use **append-only** audit tables for key events.
-- Audit rows must never be updated in place; new events are appended.
-
-### Financial data
-
-- Financial amounts must be stored as **pence** using **BIGINT** (no floating point).
-- Currency handling must be explicit and documented at call sites.
+- **Primary keys**: UUID only — no serial or integer IDs
+- **Soft deletes**: Records are never hard-deleted except through an explicit, documented deletion workflow. All tables with user data must include a `deleted_at` column.
+- **Required columns**: Every table must include:
+  - `created_at TIMESTAMPTZ NOT NULL DEFAULT now()`
+  - `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()`
+  - `deleted_at TIMESTAMPTZ`
+- **Row Level Security**: RLS policies must be in place and verified before any write path is enabled on a table.
+- **Audit tables**: Append-only audit tables are required for any table containing clinical or financial data. No updates or deletes are permitted on audit tables.
+- **Financial data**: All monetary values are stored in **pence as `BIGINT`**. Floating-point types are not used for financial data.
+- **Migrations**: All schema changes are applied via versioned migration files in `/supabase/migrations`. No ad-hoc schema modifications are permitted.
 
 ---
 
-## 9) Authentication & Security
+## Authentication & Security
 
-### Authentication
-
-- **Magic link only** (Supabase OTP).
-- No passwords stored or managed by this application.
-
-### Token storage
-
-- Web: use **httpOnly cookies** where applicable.
-- Mobile: use platform-secure storage (e.g., **Expo SecureStore**).
-
-### Error handling
-
-- Do not expose raw errors or stack traces to end users.
-- Centralise error mapping (safe user messages + internal logging).
-- Logs must not contain PII; treat logs as part of the regulated record surface.
+- Authentication uses **Supabase OTP (magic link) only**. Password-based authentication is not implemented.
+- Session tokens are stored in:
+  - **Web**: `httpOnly` cookies — not `localStorage`
+  - **Mobile**: Expo `SecureStore`
+- Access control is enforced **server-side via RLS**. Client-side tier or role state is never used to gate data access or feature availability.
+- Error responses must not expose raw database errors, stack traces, or internal system detail to the client.
+- All API routes validate the authenticated session before processing any request.
 
 ---
 
-## 10) Design System (“Clinical Architect”)
+## Design System
 
-The UI design system is safety-oriented: clarity, predictability, and low cognitive load.
+The design system is referred to internally as **"Clinical Architect"**. It prioritises legibility, reliability, and suitability for use in high-stress prehospital environments.
 
-### Core rules
+### Typography
 
-- **No-line rule:** avoid borders/outlined boxes as primary layout structure.
-- Typography:
-  - **Inter** for clinical and operational UI text.
-  - **Space Grotesk** reserved for controlled brand/marketing contexts only.
-- Colour system:
-  - Use a constrained palette with high contrast.
-  - Colour must not be the only indicator of state (always pair with text/iconography).
-- Touch targets:
-  - Minimum **48px** tap target for all interactive controls on mobile.
-- Arrival Mode HUD constraints:
-  - HUD elements must remain readable under glare and movement.
-  - Avoid dense multi-column layouts; prioritise large type and single-action flows.
-  - Any “arrival mode” display must remain deterministic and stable (no flicker, no reflow from background refresh).
+| Use case | Typeface |
+|---|---|
+| Body, UI labels, data | Inter |
+| Headings, structural labels | Space Grotesk |
 
----
+### Layout
 
-## 11) Development Rules (Non-Negotiable)
+- **No borders or dividing lines** between UI elements. Separation is achieved through spacing and background contrast only.
+- All interactive elements must meet a **minimum touch target of 48×48px**.
 
-- **Never use `any`.** Use precise types, `unknown`, and type narrowing.
-- **Never gate access using client-side tier state.** Access control is server-enforced.
-- **Never run PII processing outside Supabase Edge Functions.**
-- **Never use `DELETE`** for operational records (except explicit deletion workflows with audit trails).
-- **Never introduce Axios.** Use `fetch`.
-- **Never introduce Moment.js.** Use `date-fns`.
-- **Never use class components.** Function components only.
-- **TypeScript strict mode is mandatory.** Do not weaken compiler options to “make it pass”.
-- **Clinical logic must remain in `packages/clinical`.** Do not duplicate or embed in UI layers.
+### Colour
+
+- Colour usage is functional, not decorative.
+- Status colours (alert, warning, neutral) follow clinical convention and are not repurposed for branding.
+- The system must remain usable in bright outdoor light conditions.
+
+### Arrival Mode HUD
+
+- The Arrival Mode HUD is a specialised display surface activated on scene arrival.
+- It must render key patient and scene data without scroll.
+- No dynamic animations, no decorative elements.
+- Font sizes and contrast ratios in HUD view must meet WCAG AA as a minimum.
 
 ---
 
-## 12) Test Credentials (Development Only)
+## Development Rules
 
-> Insert the provided accounts below exactly as given. Do not use these in production.
+The following rules are enforced across all contributions. They are not negotiable.
 
-- **[REPLACE WITH PROVIDED TEST ACCOUNT 1]**
-- **[REPLACE WITH PROVIDED TEST ACCOUNT 2]**
+- **Never use the `any` type.** All TypeScript must be fully typed. Use `unknown` with explicit narrowing where the type is genuinely uncertain.
+- **Never gate data access using client-side tier or role state.** All access control is enforced through Supabase RLS.
+- **Never process PII outside Supabase Edge Functions.** The Airlock Engine is the only permitted location for PII handling.
+- **Never use `DELETE` in application code** except within explicitly documented deletion workflows. Use soft deletes (`deleted_at`) everywhere else.
+- **Never use `npm` or `yarn`.** Use `pnpm` for all package operations.
+- **Never use `Moment.js`.** Use `date-fns` for all date operations.
+- **Never use `axios`.** Use the native `fetch` API.
+- **Never use React class components.**
+- **Never commit secrets or credentials.** Use environment variables and deployment-level secret management.
+- **Never expose raw errors to the client.** Sanitise all error responses before returning them.
 
 ---
 
-## 13) Disclaimer
+## Test Credentials
 
-ParaCompanion v2 is a clinical documentation support tool. It is **not** a medical device intended for diagnosis, triage, or treatment decision-making, and it is **not a substitute for clinical judgement**. Clinicians retain full responsibility for all clinical decisions and actions.
+> **Development environment only. Do not use in staging or production.**
+
+These accounts are available in the local Supabase development environment for testing purposes. OTP magic links are captured by the local Inbucket email server at `http://localhost:54324` (available when `supabase start` is running).
+
+```
+Role: Clinician (standard)
+Email: test.clinician@paracompanion.dev
+
+Role: Admin
+Email: test.admin@paracompanion.dev
+```
+
+---
+
+## Disclaimer
+
+ParaCompanion v2 is a clinical documentation support tool. It is **not a medical device for the purpose of diagnosis, triage, or treatment decision-making**. It does not replace clinical judgement. All clinical decisions remain the sole responsibility of the treating clinician.
+
+This software is classified as Class I SaMD under MHRA regulation and is subject to applicable post-market surveillance obligations.
