@@ -2,7 +2,7 @@
 
 import React from 'react'
 import { Button } from '@/components/ui/Button'
-import { CheckCircle2, Rocket, ExternalLink } from 'lucide-react'
+import { CheckCircle2, Rocket } from 'lucide-react'
 
 export function CompleteStep() {
   return (
@@ -13,7 +13,7 @@ export function CompleteStep() {
 
       <header className="space-y-4 max-w-md">
         <h2 className="text-4xl sm:text-5xl font-extrabold font-sans tracking-tight text-on-surface leading-tight">
-          You're all set
+          You&rsquo;re all set
         </h2>
         <p className="text-on-surface-variant leading-relaxed font-sans text-sm">
           Your ParaCompanion profile has been created successfully. You can now access all clinical features on your mobile device.

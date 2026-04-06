@@ -12,6 +12,51 @@ import { useOnboardingStore } from '@/store/useOnboardingStore'
 import { Check, ShieldCheck, ArrowRight } from 'lucide-react'
 import { createClient } from '@/utils/supabase/client'
 
+interface CheckboxProps {
+  label: string
+  checked: boolean
+  onChange: (checked: boolean) => void
+  required?: boolean
+  onLinkClick?: (() => void) | null
+  linkText?: string
+}
+
+function Checkbox({
+  label,
+  checked,
+  onChange,
+  required = false,
+  onLinkClick = null,
+  linkText = '',
+}: CheckboxProps) {
+  return (
+    <div
+      className={`relative flex items-start gap-4 p-5 transition-all duration-300 cursor-pointer ghost-border ${checked ? 'bg-primary/5' : 'bg-surface-container-high/50 hover:bg-surface-container-high'}`}
+      onClick={() => onChange(!checked)}
+    >
+      <div className={`mt-1 h-5 w-5 rounded-sm flex items-center justify-center transition-all duration-300 border ${checked ? 'bg-primary border-primary text-white shadow-sm' : 'bg-white border-outline-variant'}`}>
+        {checked && <Check size={14} strokeWidth={3} />}
+      </div>
+      <div className="flex-1 space-y-1">
+        <p className="text-[13px] font-semibold text-on-surface leading-snug select-none font-sans">
+          {label} {required && <span className="text-primary">*</span>}
+        </p>
+        {onLinkClick && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onLinkClick()
+            }}
+            className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-70 transition-all font-clinical flex items-center gap-1"
+          >
+            {linkText} <ArrowRight size={10} strokeWidth={1.5} />
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function ConsentStep() {
   const { setStep, setProfileData, agreedToTerms, agreedToPrivacy, agreedToMarketing } = useOnboardingStore()
   const [localAgreedTerms, setLocalAgreedTerms] = useState(agreedToTerms)
@@ -43,47 +88,6 @@ export function ConsentStep() {
     }
   }
 
-  const Checkbox = ({ 
-    label, 
-    checked, 
-    onChange, 
-    required = false, 
-    onLinkClick = null, 
-    linkText = '' 
-  }: {
-    label: string
-    checked: boolean
-    onChange: (checked: boolean) => void
-    required?: boolean
-    onLinkClick?: (() => void) | null
-    linkText?: string
-  }) => (
-    <div 
-      className={`relative flex items-start gap-4 p-5 transition-all duration-300 cursor-pointer ghost-border ${checked ? 'bg-primary/5' : 'bg-surface-container-high/50 hover:bg-surface-container-high'}`}
-      onClick={() => onChange(!checked)}
-    >
-      <div className={`mt-1 h-5 w-5 rounded-sm flex items-center justify-center transition-all duration-300 border ${checked ? 'bg-primary border-primary text-white shadow-sm' : 'bg-white border-outline-variant'}`}>
-        {checked && <Check size={14} strokeWidth={3} />}
-      </div>
-      <div className="flex-1 space-y-1">
-        <p className="text-[13px] font-semibold text-on-surface leading-snug select-none font-sans">
-          {label} {required && <span className="text-primary">*</span>}
-        </p>
-        {onLinkClick && (
-          <button 
-            onClick={(e) => {
-              e.stopPropagation()
-              onLinkClick()
-            }}
-            className="text-[10px] font-bold uppercase tracking-widest text-primary hover:opacity-70 transition-all font-clinical flex items-center gap-1"
-          >
-            {linkText} <ArrowRight size={10} strokeWidth={1.5} />
-          </button>
-        )}
-      </div>
-    </div>
-  )
-
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-right-4 duration-700">
       <header className="space-y-4">
@@ -100,7 +104,7 @@ export function ConsentStep() {
       </header>
 
       <div className="space-y-4">
-        <Checkbox 
+        <Checkbox
           label="I'm a UK clinician or student and I agree to the terms."
           checked={localAgreedTerms}
           onChange={setLocalAgreedTerms}
@@ -108,7 +112,7 @@ export function ConsentStep() {
           onLinkClick={() => setShowTerms(true)}
           linkText="Review Terms"
         />
-        <Checkbox 
+        <Checkbox
           label="I've read the privacy policy and I'm happy to proceed."
           checked={localAgreedPrivacy}
           onChange={setLocalAgreedPrivacy}
@@ -116,7 +120,7 @@ export function ConsentStep() {
           onLinkClick={() => setShowPrivacy(true)}
           linkText="Review Privacy"
         />
-        <Checkbox 
+        <Checkbox
           label="Send the occasional update about new features."
           checked={localAgreedMarketing}
           onChange={setLocalAgreedMarketing}
@@ -130,9 +134,9 @@ export function ConsentStep() {
             Back
           </Button>
         )}
-        <Button 
+        <Button
           variant="surgical"
-          onClick={handleNext} 
+          onClick={handleNext}
           disabled={!localAgreedTerms || !localAgreedPrivacy}
           className="flex-1"
           icon
@@ -142,25 +146,25 @@ export function ConsentStep() {
       </div>
 
       {/* Modals */}
-      <Modal 
-        isOpen={showTerms} 
-        onClose={() => setShowTerms(false)} 
+      <Modal
+        isOpen={showTerms}
+        onClose={() => setShowTerms(false)}
         title="Terms of Service"
       >
         <TermsOfServiceContent />
       </Modal>
 
-      <Modal 
-        isOpen={showPrivacy} 
-        onClose={() => setShowPrivacy(false)} 
+      <Modal
+        isOpen={showPrivacy}
+        onClose={() => setShowPrivacy(false)}
         title="Privacy Policy"
       >
         <PrivacyPolicyContent />
       </Modal>
 
-      <Modal 
-        isOpen={showCookies} 
-        onClose={() => setShowCookies(false)} 
+      <Modal
+        isOpen={showCookies}
+        onClose={() => setShowCookies(false)}
         title="Cookie Policy"
       >
         <CookiePolicyContent />

@@ -40,7 +40,9 @@ export function Header({ variant = 'full' }: HeaderProps) {
 
   // Close menus on route change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: close menus on route change
     setIsMenuOpen(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- intentional: close menus on route change
     setIsProfileOpen(false);
   }, [pathname]);
 
