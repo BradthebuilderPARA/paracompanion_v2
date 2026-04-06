@@ -4,12 +4,13 @@
   "private": true,
   "packageManager": "pnpm@10.28.0",
   "engines": {
-    "node": ">=20.0.0"
+    "node": "20.x"
   },
   "scripts": {
     "build": "pnpm --filter web build",
     "dev": "pnpm --filter web dev",
-    "lint": "pnpm --filter web lint"
+    "lint": "pnpm --filter web lint",
+    "supabase:types": "supabase gen types typescript --local > packages/types/database.ts"
   },
   "dependencies": {},
   "devDependencies": {}

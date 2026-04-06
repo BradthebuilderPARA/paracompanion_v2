@@ -136,6 +136,17 @@ supabase start
 supabase db reset   # Applies all migrations and seeds
 ```
 
+### Regenerating Database Types
+
+The generated TypeScript types for the Supabase database schema live in `packages/types/database.ts`. Whenever you apply a new migration, regenerate these types to keep TypeScript in sync:
+
+```bash
+# Requires the local Supabase stack to be running (supabase start)
+pnpm supabase:types
+```
+
+This runs `supabase gen types typescript --local` and overwrites `packages/types/database.ts`. Commit the updated file alongside any migration that changes the schema.
+
 ### Environment Variables
 
 Each app expects a `.env.local` file. **No secrets are committed to the repository.** Reference `.env.example` in each app directory for required variable names. Variables follow the pattern:
