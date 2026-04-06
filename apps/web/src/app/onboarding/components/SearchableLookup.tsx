@@ -48,18 +48,33 @@ export function SearchableLookup({ type, onSelect, selectedId, label, placeholde
         setSelectedName('')
         return
       }
-      
-      const table = type === 'trust' ? 'ambulance_trusts' : 'universities'
-      const nameCol = type === 'trust' ? 'trust_name' : 'uni_name'
-      
-      const { data } = await supabase
-        .from(table)
-        .select(nameCol)
-        .eq('id', selectedId)
-        .single()
-      
-      if (data) {
-        setSelectedName((data as Record<string, string>)[nameCol])
+
+      if (type === 'trust') {
+        const { data, error } = await supabase
+          .from('ambulance_trusts')
+          .select('trust_name')
+          .eq('id', selectedId)
+          .single()
+        if (error) {
+          console.error('Error fetching trust:', error)
+          return
+        }
+        if (typeof data?.trust_name === 'string') {
+          setSelectedName(data.trust_name)
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('universities')
+          .select('uni_name')
+          .eq('id', selectedId)
+          .single()
+        if (error) {
+          console.error('Error fetching university:', error)
+          return
+        }
+        if (typeof data?.uni_name === 'string') {
+          setSelectedName(data.uni_name)
+        }
       }
     }
     fetchSelected()
@@ -74,30 +89,46 @@ export function SearchableLookup({ type, onSelect, selectedId, label, placeholde
     }
 
     setLoading(true)
-    const table = type === 'trust' ? 'ambulance_trusts' : 'universities'
-    const nameCol = type === 'trust' ? 'trust_name' : 'uni_name'
-    const shortCol = type === 'trust' ? 'short_code' : 'short_name'
-    const subtitleCol = type === 'trust' ? 'region' : 'country'
-
     try {
-      const supabaseQuery = supabase
-        .from(table)
-        .select(`id, ${nameCol}, ${shortCol}, ${subtitleCol}`)
-        .or(`${nameCol}.ilike.%${searchQuery}%,${shortCol}.ilike.%${searchQuery}%,${subtitleCol}.ilike.%${searchQuery}%`)
-        .limit(10)
+      let items: LookupItem[] = []
 
-      const { data, error } = await supabaseQuery
+      if (type === 'trust') {
+        const { data, error } = await supabase
+          .from('ambulance_trusts')
+          .select('id, trust_name, short_code, region')
+          .or(`trust_name.ilike.%${searchQuery}%,short_code.ilike.%${searchQuery}%,region.ilike.%${searchQuery}%`)
+          .limit(10)
 
-      if (error) throw error
+        if (error) throw error
 
-      if (data) {
-        setResults(data.map((item: Record<string, unknown>) => ({
-          id: item.id,
-          name: item[nameCol],
-          short_code: item[shortCol as string],
-          subtitle: item[subtitleCol as string]
-        })))
+        if (data) {
+          items = data.map((item) => ({
+            id: item.id,
+            name: item.trust_name,
+            short_code: item.short_code ?? undefined,
+            subtitle: item.region,
+          }))
+        }
+      } else {
+        const { data, error } = await supabase
+          .from('universities')
+          .select('id, uni_name, short_name, country')
+          .or(`uni_name.ilike.%${searchQuery}%,short_name.ilike.%${searchQuery}%,country.ilike.%${searchQuery}%`)
+          .limit(10)
+
+        if (error) throw error
+
+        if (data) {
+          items = data.map((item) => ({
+            id: item.id,
+            name: item.uni_name,
+            short_code: item.short_name ?? undefined,
+            subtitle: item.country,
+          }))
+        }
       }
+
+      setResults(items)
     } catch (err) {
       console.error('Search error:', err)
     } finally {
