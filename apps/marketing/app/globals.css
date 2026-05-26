@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --background: #F7F9FB;
+  --foreground: #0f172a;
+  --primary: #0066FF;
+  --primary-gradient-start: #003B9A;
+  --primary-gradient-end: #0050CB;
+  --accent: #0050CB;
+  --surface-lowest: #FFFFFF;
+  --surface-base: #F7F9FB;
+  --text-muted: #64748b;
+  --outline-variant: #C3C6D6;
+  --border-ghost: rgba(195, 198, 214, 0.2);
+
+  /* Functional Clinical Palette */
+  --adult-emerald: #059669;
+  --paediatric-blue: #2563EB;
+  --maternity-purple: #9333EA;
+  --emergency-red: #DC2626;
+
+  --hero-gradient-start: #0c1929;
+  --hero-gradient-end: #0f2a42;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-accent: var(--accent);
+  --color-surface-lowest: var(--surface-lowest);
+  --color-surface-base: var(--surface-base);
+  --color-text-muted: var(--text-muted);
+  --color-outline-variant: var(--outline-variant);
+  --color-border-ghost: var(--border-ghost);
+  --color-adult-emerald: var(--adult-emerald);
+  --color-paediatric-blue: var(--paediatric-blue);
+  --color-maternity-purple: var(--maternity-purple);
+  --color-emergency-red: var(--emergency-red);
+  --font-sans: 'Inter', var(--font-geist-sans);
+  --font-mono: 'Space Grotesk', var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: 'Inter', var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* Gradient text — uses brand surgical blue */
+.gradient-text {
+  background: linear-gradient(135deg, var(--primary-gradient-start), var(--primary-gradient-end));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero animated gradient — dark, clinical */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animated-gradient {
+  background: linear-gradient(-45deg, #0c1929, #0f2a42, #0e3553, #0c2940);
+  background-size: 400% 400%;
+  animation: gradient-shift 15s ease infinite;
+}
+
+/* Telemetry shadow — per design system */
+.telemetry-shadow {
+  box-shadow: 0px 12px 32px rgba(25, 28, 30, 0.04);
+}
+
+/* Technical font class */
+.font-technical {
+  font-family: 'Space Grotesk', monospace;
+  letter-spacing: 0.05em;
+}

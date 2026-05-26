@@ -1,0 +1,20 @@
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl) {
+  throw new Error(
+    'Missing environment variable: NEXT_PUBLIC_SUPABASE_URL\n' +
+      'Copy apps/web/.env.example to apps/web/.env.local and fill in your Supabase project URL.',
+  );
+}
+
+if (!supabaseAnonKey) {
+  throw new Error(
+    'Missing environment variable: NEXT_PUBLIC_SUPABASE_ANON_KEY\n' +
+      'Copy apps/web/.env.example to apps/web/.env.local and fill in your Supabase anon key.',
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey);
