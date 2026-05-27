@@ -4,10 +4,25 @@ import { STRIPE_PRICES } from '@paracompanion/types';
 
 export async function POST(req: Request) {
   try {
-    const { priceId, userId, email, successUrl, cancelUrl } = await req.json();
+    // 1. Strict environment checks
+    if (!process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY === 'sk_test_mock_for_build') {
+      return NextResponse.json({ error: 'Stripe is not configured on this environment.' }, { status: 503 });
+    }
+
+    if (!process.env.NEXT_PUBLIC_APP_URL) {
+      console.error('NEXT_PUBLIC_APP_URL is not set.');
+      return NextResponse.json({ error: 'Server configuration error.' }, { status: 500 });
+    }
+
+    const body = await req.json();
+    const { priceId, userId, email, successUrl, cancelUrl } = body;
 
     if (!priceId || !userId) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+      return NextResponse.json({ error: 'Missing required parameters: priceId and userId are required.' }, { status: 400 });
+    }
+
+    if (!email || !email.includes('@')) {
+      return NextResponse.json({ error: 'Valid email is required for checkout.' }, { status: 400 });
     }
 
     // Create Checkout Sessions from body params

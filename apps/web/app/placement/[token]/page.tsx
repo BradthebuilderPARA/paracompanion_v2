@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import { submitSignOff } from './actions';
 
+export const dynamic = 'force-dynamic';
+
 export default async function SupervisorSignOffPage({ params }: { params: { token: string } }) {
   // Create the Supabase client inside the request handler, not at module scope.
   // Module-scope initialisation runs during Next.js build-time page-data collection,
